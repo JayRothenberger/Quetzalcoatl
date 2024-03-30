@@ -1093,7 +1093,7 @@ def queenh_tiny(pretrained=False, **kwargs):
 @register_model
 def quetzal_t_patch8_2(pretrained=False, **kwargs):
     model = WeatherMamba(
-                         img_size=(12, 1280, 640), patch_size=(2, 14, 14), stride=(2, 8, 8), channels=67, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
+                         img_size=(12, 640, 1280), patch_size=(2, 14, 14), stride=(2, 8, 8), channels=67, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
     model.default_cfg = _cfg()
     if pretrained:
         checkpoint = torch.hub.load_state_dict_from_url(
@@ -1106,7 +1106,7 @@ def quetzal_t_patch8_2(pretrained=False, **kwargs):
 @register_model
 def quetzal_t_patch8_1(pretrained=False, **kwargs):
     model = WeatherMamba(
-                         img_size=(12, 1280, 640), patch_size=(1, 14, 14), stride=(1, 8, 8), channels=67, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
+                         img_size=(12, 640, 1280), patch_size=(1, 14, 14), stride=(1, 8, 8), channels=67, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
     model.default_cfg = _cfg()
     if pretrained:
         checkpoint = torch.hub.load_state_dict_from_url(
@@ -1119,7 +1119,7 @@ def quetzal_t_patch8_1(pretrained=False, **kwargs):
 @register_model
 def quetzal_t_patch16_2(pretrained=False, **kwargs):
     model = WeatherMamba(
-                         img_size=(12, 1280, 640), patch_size=(2, 18, 18), stride=(2, 16, 16), channels=67, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
+                         img_size=(12, 640, 1280), patch_size=(2, 18, 18), stride=(2, 16, 16), channels=67, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
     model.default_cfg = _cfg()
     if pretrained:
         checkpoint = torch.hub.load_state_dict_from_url(
@@ -1132,7 +1132,7 @@ def quetzal_t_patch16_2(pretrained=False, **kwargs):
 @register_model
 def quetzal_t_patch16_1(pretrained=False, **kwargs):
     model = WeatherMamba(
-                         img_size=(12, 1280, 640), patch_size=(1, 18, 18), stride=(1, 16, 16), channels=67, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
+                         img_size=(12, 640, 1280), patch_size=(1, 18, 18), stride=(1, 16, 16), channels=67, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
     model.default_cfg = _cfg()
     if pretrained:
         checkpoint = torch.hub.load_state_dict_from_url(
@@ -1145,7 +1145,7 @@ def quetzal_t_patch16_1(pretrained=False, **kwargs):
 @register_model
 def quetzal_s_patch16_2_24(pretrained=False, **kwargs):
     model = WeatherMamba(
-                         img_size=(24, 1280, 640), patch_size=(2, 18, 18), stride=(2, 16, 16), channels=67, embed_dim=384, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs
+                         img_size=(24, 640, 1280), patch_size=(2, 18, 18), stride=(2, 16, 16), channels=67, embed_dim=384, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs
                          )
     model.default_cfg = _cfg()
     if pretrained:
@@ -1159,7 +1159,7 @@ def quetzal_s_patch16_2_24(pretrained=False, **kwargs):
 @register_model
 def quetzal_s_patch16_1_24(pretrained=False, **kwargs):
     model = WeatherMamba(
-                         img_size=(24, 1280, 640), patch_size=(1, 18, 18), stride=(1, 16, 16), channels=67, embed_dim=384, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs
+                         img_size=(24, 640, 1280), patch_size=(1, 18, 18), stride=(1, 16, 16), channels=67, embed_dim=384, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs
                          )
     model.default_cfg = _cfg()
     if pretrained:
