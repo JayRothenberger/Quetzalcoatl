@@ -14,6 +14,10 @@
   - `pip install -e causal_conv1d>=1.1.0`
   - `pip install -e mamba-1p1p1`
 
+## Usage
+
+- `from vim.models_mamba import quetzal_s_patch16_1_24`
+- `model = quetzal_s_patch16_1_24()`
 
 ## Citation
 If you find Vim is useful in your research or applications, please consider giving us a star 🌟 and citing it by the following BibTeX entry.
