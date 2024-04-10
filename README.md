@@ -20,7 +20,7 @@
 - `model = quetzal_s_patch16_1_24()`
 
 ## Citation
-If you find Vim is useful in your research or applications, please consider giving us a star 🌟 and citing it by the following BibTeX entry.
+If you find Vim is useful in your research or applications, please cite it with the following BibTeX entry.
 
 ```bibtex
  @article{vim,
