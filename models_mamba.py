@@ -7,7 +7,7 @@ from torch import Tensor
 from typing import Optional
 from copy import deepcopy as copy
 
-from timm.models.vision_transformer import VisionTransformer, _cfg
+from timm.models.vision_transformer import _cfg
 from timm.models.registry import register_model
 from timm.models.layers import trunc_normal_, lecun_normal_
 
@@ -16,13 +16,10 @@ from timm.models.vision_transformer import _load_weights
 
 import math
 
-from collections import namedtuple
-
 from mamba_ssm.modules.mamba_simple import Mamba
-from mamba_ssm.utils.generation import GenerationMixin
-from mamba_ssm.utils.hf import load_config_hf, load_state_dict_hf
 
-from .rope import *
+from .rope import VisionRotaryEmbeddingFast
+
 import random
 
 try:
