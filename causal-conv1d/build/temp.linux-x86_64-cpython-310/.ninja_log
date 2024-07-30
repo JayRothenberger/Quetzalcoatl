@@ -1,5 +1,0 @@
-# ninja log v5
-1	44311	1711733933953964434	/ourdisk/hpc/ai2es/jroth/QueenHilbert/causal-conv1d/build/temp.linux-x86_64-cpython-310/csrc/causal_conv1d.o	cff459bd9c3dce44
-309	9678	1711734261655420936	/ourdisk/hpc/ai2es/jroth/QueenHilbert/causal-conv1d/build/temp.linux-x86_64-cpython-310/csrc/causal_conv1d_update.o	612ea204b76f7c04
-309	20908	1711734272876436627	/ourdisk/hpc/ai2es/jroth/QueenHilbert/causal-conv1d/build/temp.linux-x86_64-cpython-310/csrc/causal_conv1d_fwd.o	31ae20cd4a536db3
-309	57578	1711734309524487874	/ourdisk/hpc/ai2es/jroth/QueenHilbert/causal-conv1d/build/temp.linux-x86_64-cpython-310/csrc/causal_conv1d_bwd.o	6eddfc642ea88a2
