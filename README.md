@@ -22,9 +22,12 @@
   - `pip install causal_conv1d>=1.1.0`
   - `pip install mamba-ssm`
 
+- Install ``quetzalcoatl``
+  - `pip install -e quetzalcoatl`
+
 ## Usage
 
-- `from vim.models_mamba import quetzal_s_patch16_1_24`
+- `from quetzalcoatl.models import quetzal_s_patch16_1_24`
 - `model = quetzal_s_patch16_1_24()`
 
 ## Citation

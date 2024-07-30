@@ -1,0 +1,30 @@
+[build-system]
+# 
+requires = ["setuptools==69.5.1", 
+            ]
+build-backend = "setuptools.build_meta"
+[project]
+name = "quetzalcoatl"
+dependencies = ["timm",
+                "causal_conv1d>=1.1.0",
+                "mamba-ssm",
+                "hilbertcurve",
+                "torch==2.1.2",
+                "einops"]
+version = "0.0.1"
+authors = [
+  { name="Jay Rothenberber", email="jay.c.rothenberger@gmail.com" },
+]
+description = "A bi-level cache for use in machine learning model training and parallel data processing on distributed machines with PyTorch."
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Unix",
+    "Topic :: Scientific/Engineering :: Machine Learning",
+]
+
+[project.urls]
+Homepage = "https://github.com/JayRothenberger/BiLevelCache"
+Issues = "https://github.com/JayRothenberger/BiLevelCache/Issues"
