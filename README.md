@@ -4,23 +4,16 @@
 
   - `conda create -n your_env_name python=3.10.13`
 
-- torch 2.1.2 + cuda 12.0
-  - `pip install torch==2.1.2 torchvision==0.16.1 torchaudio==2.1.1 --index-url https://download.pytorch.org/whl/cu120`
+- torch + cuda 12.1 (lower versions of cuda to 11.6 should also work)
+  - `conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia`
 
 - Per [this](https://github.com/bitsandbytes-foundation/bitsandbytes/issues/212) very helpful issue, to install the neccessary cuda utilities for 
-  - `conda install -c "nvidia/label/cuda-12.0" cuda-toolkit`
+  - `conda install -c "nvidia/label/cuda-12.1" cuda-toolkit`
   then
   - `export export CUDA_HOME=$CONDA_PREFIX`
 
-- Per [this](https://github.com/aws-neuron/aws-neuron-sdk/issues/893) very helful issue, make sure to use the appropriate setuptools version
+- Per [this](https://github.com/aws-neuron/aws-neuron-sdk/issues/893) very helful issue, you may need to install the appropriate setuptools version
   - `pip install setuptools==69.5.1`
-
-- Requirements: vim_requirements.txt
-  - `pip install -r vim/vim_requirements.txt`
-
-- Install ``causal_conv1d`` and ``mamba``
-  - `pip install causal_conv1d>=1.1.0`
-  - `pip install mamba-ssm`
 
 - Install ``quetzalcoatl``
   - `pip install -e quetzalcoatl`
