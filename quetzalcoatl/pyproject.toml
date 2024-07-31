@@ -9,7 +9,7 @@ dependencies = ["timm",
                 "causal_conv1d>=1.1.0",
                 "mamba-ssm",
                 "hilbertcurve",
-                "torch==2.1.2",
+                "torch>=2.1.2",
                 "einops"]
 version = "0.0.1"
 authors = [

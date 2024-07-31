@@ -16,16 +16,13 @@ from timm.models.vision_transformer import _load_weights
 
 import math
 
-from mamba_ssm.modules.mamba_simple import Mamba
+from quetzalcoatl.bimamba import BiMamba
 
 from .rope import VisionRotaryEmbeddingFast
 
 import random
 
-try:
-    from mamba_ssm.ops.triton.layernorm import RMSNorm, layer_norm_fn, rms_norm_fn
-except ImportError:
-    RMSNorm, layer_norm_fn, rms_norm_fn = None, None, None
+from mamba_ssm.ops.triton.layer_norm import RMSNorm, layer_norm_fn, rms_norm_fn
 
 from hilbertcurve.hilbertcurve import HilbertCurve
 
@@ -278,17 +275,12 @@ def create_block(
     layer_idx=None,
     device=None,
     dtype=None,
-    if_bimamba=False,
-    bimamba_type="none",
     if_devide_out=False,
     init_layer_scale=None,
 ):
-    if if_bimamba:
-        bimamba_type = "v1"
-    if ssm_cfg is None:
-        ssm_cfg = {}
+
     factory_kwargs = {"device": device, "dtype": dtype}
-    mixer_cls = partial(Mamba, layer_idx=layer_idx, bimamba_type=bimamba_type, if_devide_out=if_devide_out, init_layer_scale=init_layer_scale, **ssm_cfg, **factory_kwargs)
+    mixer_cls = partial(BiMamba, layer_idx=layer_idx, if_devide_out=if_devide_out, init_layer_scale=init_layer_scale, **ssm_cfg, **factory_kwargs)
     norm_cls = partial(
         nn.LayerNorm if not rms_norm else RMSNorm, eps=norm_epsilon, **factory_kwargs
     )
@@ -380,7 +372,6 @@ class VisionMamba(nn.Module):
                  if_rope_residual=False,
                  flip_img_sequences_ratio=-1.,
                  if_bimamba=False,
-                 bimamba_type="none",
                  if_cls_token=False,
                  if_devide_out=False,
                  init_layer_scale=None,
@@ -455,7 +446,6 @@ class VisionMamba(nn.Module):
                     fused_add_norm=fused_add_norm,
                     layer_idx=i,
                     if_bimamba=if_bimamba,
-                    bimamba_type=bimamba_type,
                     drop_path=inter_dpr[i],
                     if_devide_out=if_devide_out,
                     init_layer_scale=init_layer_scale,
@@ -584,46 +574,27 @@ class VisionMamba(nn.Module):
         # mamba impl
         residual = None
         hidden_states = x
-        if not self.if_bidirectional:
-            for layer in self.layers:
 
-                if if_flip_img_sequences and self.if_rope:
-                    hidden_states = hidden_states.flip([1])
-                    if residual is not None:
-                        residual = residual.flip([1])
+        for layer in self.layers:
 
-                # rope about
-                if self.if_rope:
-                    hidden_states = self.rope(hidden_states)
-                    if residual is not None and self.if_rope_residual:
-                        residual = self.rope(residual)
+            if if_flip_img_sequences and self.if_rope:
+                hidden_states = hidden_states.flip([1])
+                if residual is not None:
+                    residual = residual.flip([1])
+            # rope about
+            if self.if_rope:
+                hidden_states = self.rope(hidden_states)
+                if residual is not None and self.if_rope_residual:
+                    residual = self.rope(residual)
 
-                if if_flip_img_sequences and self.if_rope:
-                    hidden_states = hidden_states.flip([1])
-                    if residual is not None:
-                        residual = residual.flip([1])
+            if if_flip_img_sequences and self.if_rope:
+                hidden_states = hidden_states.flip([1])
+                if residual is not None:
+                    residual = residual.flip([1])
 
-                hidden_states, residual = layer(
-                    hidden_states, residual, inference_params=inference_params
-                )
-        else:
-            # get two layers in a single for-loop
-            for i in range(len(self.layers) // 2):
-                if self.if_rope:
-                    hidden_states = self.rope(hidden_states)
-                    if residual is not None and self.if_rope_residual:
-                        residual = self.rope(residual)
-                # forward order
-                hidden_states_f, residual_f = self.layers[i * 2](
-                    hidden_states, residual, inference_params=inference_params
-                )
-                # backward order
-                hidden_states_b, residual_b = self.layers[i * 2 + 1](
-                    hidden_states.flip([1]), None if residual == None else residual.flip([1]), inference_params=inference_params
-                )
-                # sum the hidden states from both orders
-                hidden_states = hidden_states_f + hidden_states_b.flip([1])
-                residual = residual_f + residual_b.flip([1])
+            hidden_states, residual = layer(
+                hidden_states, residual, inference_params=inference_params
+            )
 
         if not self.fused_add_norm:
             if residual is None:
@@ -707,7 +678,6 @@ class WeatherMamba(nn.Module):
                  if_rope_residual=False,
                  flip_img_sequences_ratio=-1.,
                  if_bimamba=False,
-                 bimamba_type="none",
                  if_cls_token=False,
                  if_devide_out=False,
                  init_layer_scale=None,
@@ -782,7 +752,6 @@ class WeatherMamba(nn.Module):
                     fused_add_norm=fused_add_norm,
                     layer_idx=i,
                     if_bimamba=if_bimamba,
-                    bimamba_type=bimamba_type,
                     drop_path=inter_dpr[i],
                     if_devide_out=if_devide_out,
                     init_layer_scale=init_layer_scale,
@@ -1009,7 +978,7 @@ class WeatherMamba(nn.Module):
 @register_model
 def vim_tiny_patch16_224_bimambav2_final_pool_mean_abs_pos_embed_with_midclstok_div2(pretrained=False, **kwargs):
     model = VisionMamba(
-        patch_size=16, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
+        patch_size=16, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
     model.default_cfg = _cfg()
     if pretrained:
         checkpoint = torch.hub.load_state_dict_from_url(
@@ -1022,7 +991,7 @@ def vim_tiny_patch16_224_bimambav2_final_pool_mean_abs_pos_embed_with_midclstok_
 @register_model
 def vim_tiny_patch16_stride8_224_bimambav2_final_pool_mean_abs_pos_embed_with_midclstok_div2(pretrained=False, **kwargs):
     model = VisionMamba(
-        patch_size=16, stride=8, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
+        patch_size=16, stride=8, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
     model.default_cfg = _cfg()
     if pretrained:
         checkpoint = torch.hub.load_state_dict_from_url(
@@ -1035,7 +1004,7 @@ def vim_tiny_patch16_stride8_224_bimambav2_final_pool_mean_abs_pos_embed_with_mi
 @register_model
 def vim_small_patch16_224_bimambav2_final_pool_mean_abs_pos_embed_with_midclstok_div2(pretrained=False, **kwargs):
     model = VisionMamba(
-        patch_size=16, embed_dim=384, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
+        patch_size=16, embed_dim=384, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
     model.default_cfg = _cfg()
     if pretrained:
         checkpoint = torch.hub.load_state_dict_from_url(
@@ -1048,7 +1017,7 @@ def vim_small_patch16_224_bimambav2_final_pool_mean_abs_pos_embed_with_midclstok
 @register_model
 def vim_small_patch16_stride8_224_bimambav2_final_pool_mean_abs_pos_embed_with_midclstok_div2(pretrained=False, **kwargs):
     model = VisionMamba(
-        patch_size=16, stride=8, embed_dim=384, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
+        patch_size=16, stride=8, embed_dim=384, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
     model.default_cfg = _cfg()
     if pretrained:
         checkpoint = torch.hub.load_state_dict_from_url(
@@ -1062,7 +1031,7 @@ def vim_small_patch16_stride8_224_bimambav2_final_pool_mean_abs_pos_embed_with_m
 @register_model
 def queenh_small(pretrained=False, **kwargs):
     model = VisionMamba(
-        img_size=224, patch_size=14, stride=7, embed_dim=384, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, hilbert=True, **kwargs)
+        img_size=224, patch_size=14, stride=7, embed_dim=384, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, hilbert=True, **kwargs)
     model.default_cfg = _cfg()
     if pretrained:
         checkpoint = torch.hub.load_state_dict_from_url(
@@ -1076,7 +1045,7 @@ def queenh_small(pretrained=False, **kwargs):
 @register_model
 def queenh_tiny(pretrained=False, **kwargs):
     model = VisionMamba(
-        img_size=224, patch_size=14, stride=14, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, hilbert=True, **kwargs)
+        img_size=224, patch_size=14, stride=14, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, hilbert=True, **kwargs)
     model.default_cfg = _cfg()
     if pretrained:
         checkpoint = torch.hub.load_state_dict_from_url(
@@ -1090,7 +1059,7 @@ def queenh_tiny(pretrained=False, **kwargs):
 @register_model
 def quetzal_t_patch8_2(pretrained=False, **kwargs):
     model = WeatherMamba(
-                         img_size=(12, 640, 1280), patch_size=(2, 14, 14), stride=(2, 8, 8), channels=67, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
+                         img_size=(12, 640, 1280), patch_size=(2, 14, 14), stride=(2, 8, 8), channels=67, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
     model.default_cfg = _cfg()
     if pretrained:
         checkpoint = torch.hub.load_state_dict_from_url(
@@ -1103,7 +1072,7 @@ def quetzal_t_patch8_2(pretrained=False, **kwargs):
 @register_model
 def quetzal_t_patch8_1(pretrained=False, **kwargs):
     model = WeatherMamba(
-                         img_size=(12, 640, 1280), patch_size=(1, 14, 14), stride=(1, 8, 8), channels=67, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
+                         img_size=(12, 640, 1280), patch_size=(1, 14, 14), stride=(1, 8, 8), channels=67, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
     model.default_cfg = _cfg()
     if pretrained:
         checkpoint = torch.hub.load_state_dict_from_url(
@@ -1116,7 +1085,7 @@ def quetzal_t_patch8_1(pretrained=False, **kwargs):
 @register_model
 def quetzal_t_patch16_2(pretrained=False, **kwargs):
     model = WeatherMamba(
-                         img_size=(12, 640, 1280), patch_size=(2, 18, 18), stride=(2, 16, 16), channels=67, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
+                         img_size=(12, 640, 1280), patch_size=(2, 18, 18), stride=(2, 16, 16), channels=67, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
     model.default_cfg = _cfg()
     if pretrained:
         checkpoint = torch.hub.load_state_dict_from_url(
@@ -1129,7 +1098,7 @@ def quetzal_t_patch16_2(pretrained=False, **kwargs):
 @register_model
 def quetzal_t_patch16_1(pretrained=False, **kwargs):
     model = WeatherMamba(
-                         img_size=(12, 640, 1280), patch_size=(1, 18, 18), stride=(1, 16, 16), channels=67, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
+                         img_size=(12, 640, 1280), patch_size=(1, 18, 18), stride=(1, 16, 16), channels=67, embed_dim=192, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs)
     model.default_cfg = _cfg()
     if pretrained:
         checkpoint = torch.hub.load_state_dict_from_url(
@@ -1142,7 +1111,7 @@ def quetzal_t_patch16_1(pretrained=False, **kwargs):
 @register_model
 def quetzal_s_patch16_2_24(pretrained=False, **kwargs):
     model = WeatherMamba(
-                         img_size=(24, 640, 1280), patch_size=(2, 18, 18), stride=(2, 16, 16), channels=67, embed_dim=384, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs
+                         img_size=(24, 640, 1280), patch_size=(2, 18, 18), stride=(2, 16, 16), channels=67, embed_dim=384, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs
                          )
     model.default_cfg = _cfg()
     if pretrained:
@@ -1156,7 +1125,7 @@ def quetzal_s_patch16_2_24(pretrained=False, **kwargs):
 @register_model
 def quetzal_s_patch16_1_24(pretrained=False, **kwargs):
     model = WeatherMamba(
-                         img_size=(24, 640, 1280), patch_size=(1, 18, 18), stride=(1, 16, 16), channels=67, embed_dim=384, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, bimamba_type="v2", if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs
+                         img_size=(24, 640, 1280), patch_size=(1, 18, 18), stride=(1, 16, 16), channels=67, embed_dim=384, depth=24, rms_norm=True, residual_in_fp32=True, fused_add_norm=True, final_pool_type='mean', if_abs_pos_embed=True, if_rope=False, if_rope_residual=False, if_cls_token=True, if_devide_out=True, use_middle_cls_token=True, **kwargs
                          )
     model.default_cfg = _cfg()
     if pretrained:

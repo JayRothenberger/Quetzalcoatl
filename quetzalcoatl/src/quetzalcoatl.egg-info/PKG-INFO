@@ -1,0 +1,20 @@
+Metadata-Version: 2.1
+Name: quetzalcoatl
+Version: 0.0.1
+Summary: A bi-level cache for use in machine learning model training and parallel data processing on distributed machines with PyTorch.
+Author-email: Jay Rothenberber <jay.c.rothenberger@gmail.com>
+Project-URL: Homepage, https://github.com/JayRothenberger/BiLevelCache
+Project-URL: Issues, https://github.com/JayRothenberger/BiLevelCache/Issues
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: Unix
+Classifier: Topic :: Scientific/Engineering :: Machine Learning
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: timm
+Requires-Dist: causal_conv1d>=1.1.0
+Requires-Dist: mamba-ssm
+Requires-Dist: hilbertcurve
+Requires-Dist: torch>=2.1.2
+Requires-Dist: einops
